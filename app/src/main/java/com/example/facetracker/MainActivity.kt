@@ -34,19 +34,23 @@ import com.google.ar.sceneform.math.Vector3
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val arSceneView = ArSceneView(this)
-        val session = Session(this, mutableSetOf(Session.Feature.FRONT_CAMERA))
-        val config = Config(session)
-
-        config.setAugmentedFaceMode(Config.AugmentedFaceMode.MESH3D)
-        config.lightEstimationMode
-        config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
-        session.configure(config)
-
-        arSceneView.setupSession(session)
-        arSceneView.resume()
-
         setContent {
+            val session = remember {
+                val session = Session(this, mutableSetOf(Session.Feature.FRONT_CAMERA))
+                val config = Config(session)
+
+                config.setAugmentedFaceMode(Config.AugmentedFaceMode.MESH3D)
+                config.lightEstimationMode
+                config.updateMode = Config.UpdateMode.LATEST_CAMERA_IMAGE
+                session.configure(config)
+                session
+            }
+            val arSceneView = remember {
+                val arSceneView = ArSceneView(this)
+                arSceneView.setupSession(session)
+                arSceneView.resume()
+                arSceneView
+            }
             var pixelOffset by remember { mutableStateOf(Offset(0f, 0f)) }
 
             val dpOffset = with(LocalDensity.current) {
