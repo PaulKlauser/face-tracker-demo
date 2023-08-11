@@ -3,11 +3,6 @@ package com.example.facetracker
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.SpringSpec
-import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.absoluteOffset
@@ -19,14 +14,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.fragment.app.FragmentActivity
@@ -56,42 +49,9 @@ class MainActivity : FragmentActivity() {
         setContent {
             var pixelOffset by remember { mutableStateOf(Offset(0f, 0f)) }
 
-            val springSpec = remember {
-                SpringSpec<Dp>(
-                    stiffness = Spring.StiffnessLow
-                )
+            val dpOffset = with(LocalDensity.current) {
+                DpOffset(pixelOffset.x.toDp(), pixelOffset.y.toDp())
             }
-            val tweenSpec = remember {
-                TweenSpec<Dp>(
-                    durationMillis = 100,
-                    easing = LinearEasing
-                )
-            }
-
-            val widthDp = LocalConfiguration.current.screenWidthDp.dp
-            val heightDp = LocalConfiguration.current.screenHeightDp.dp
-
-            val xSensitivityFactor = 2
-            val ySensitivityFactor = 4
-
-            val xDpOffset = with(LocalDensity.current) {
-//                pixelOffset.x.toDp()
-                animateDpAsState(
-                    targetValue = (pixelOffset.x.toDp() - (widthDp / 2)) * xSensitivityFactor,
-                    animationSpec = springSpec
-                )
-            }
-
-            val yDpOffset = with(LocalDensity.current) {
-//                pixelOffset.y.toDp()
-                animateDpAsState(
-                    targetValue = (pixelOffset.y.toDp() - (heightDp / 2)) * ySensitivityFactor,
-                    animationSpec = springSpec
-                )
-            }
-//            val dpOffset = with(LocalDensity.current) {
-//                DpOffset(animateDpAsState(targetValue = pixelOffset.x.toDp()), pixelOffset.y.toDp())
-//            }
 
             LaunchedEffect(Unit) {
                 arSceneView.scene.addOnUpdateListener {
@@ -110,26 +70,17 @@ class MainActivity : FragmentActivity() {
                 }
             }
 
-            Box(contentAlignment = Alignment.Center) {
+            Box {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { arSceneView })
                 Box(
                     modifier = Modifier
-                        .background(Color.Black)
-                        .fillMaxSize()
-                )
-                Box(
-                    modifier = Modifier
-                        .absoluteOffset(xDpOffset.value, yDpOffset.value)
+                        .absoluteOffset(dpOffset.x, dpOffset.y)
                         .clip(CircleShape)
                         .background(Color.Red)
                         .size(48.dp, 48.dp)
-                ) {
-                    with(LocalDensity.current) {
-                        100.toDp()
-                    }
-                }
+                )
             }
         }
     }
